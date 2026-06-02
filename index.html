@@ -2,69 +2,85 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Luyện Phát Âm & Luyện Nói</title>
+    <title>App Luyện Phát Âm Tiếng Trung</title>
     <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        .card { border: 1px solid #ccc; padding: 20px; border-radius: 10px; width: 300px; text-align: center; }
-        .hanzi { font-size: 3em; margin: 10px 0; color: #d32f2f; }
-        .pinyin { font-size: 1.5em; color: #555; margin-bottom: 20px; }
-        .controls { display: flex; gap: 10px; justify-content: center; }
-        button { padding: 10px 15px; cursor: pointer; border: none; border-radius: 5px; }
-        .speak-btn { background: #4caf50; color: white; }
-        .record-btn { background: #2196f3; color: white; }
-        #result { margin-top: 15px; font-weight: bold; }
+        body { font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #f4f4f9; }
+        .card { background: white; border: 1px solid #ddd; padding: 30px; border-radius: 15px; width: 320px; text-align: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .hanzi { font-size: 4em; margin: 10px 0; color: #d32f2f; }
+        .pinyin { font-size: 1.8em; color: #555; margin-bottom: 20px; font-style: italic; }
+        .controls { display: grid; gap: 10px; }
+        button { padding: 12px; cursor: pointer; border: none; border-radius: 8px; font-weight: bold; transition: 0.3s; }
+        .btn-speak { background: #4caf50; color: white; }
+        .btn-record { background: #2196f3; color: white; }
+        .btn-next { background: #ff9800; color: white; }
+        button:hover { opacity: 0.8; }
+        #result { margin-top: 20px; font-weight: bold; min-height: 24px; }
     </style>
 </head>
 <body>
 
-    <h2>Luyện tập tiếng Trung</h2>
+    <h2>Luyện Nói Tiếng Trung</h2>
     <div class="card">
         <div class="hanzi" id="hanzi">你好</div>
         <div class="pinyin" id="pinyin">nǐ hǎo</div>
         <div class="controls">
-            <button class="speak-btn" onclick="speakText()">Nghe</button>
-            <button class="record-btn" onclick="startRecognition()">Luyện nói</button>
+            <button class="btn-speak" onclick="speakText()">Nghe phát âm</button>
+            <button class="btn-record" onclick="startRecognition()">Bấm để nói</button>
+            <button class="btn-next" onclick="nextWord()">Từ tiếp theo</button>
         </div>
         <div id="result"></div>
     </div>
 
     <script>
-        const targetText = "你好"; // Từ mục tiêu
-        const resultDiv = document.getElementById('result');
+        // Danh sách từ vựng của bạn ở đây
+        const vocabulary = [
+            { hanzi: "你好", pinyin: "nǐ hǎo" },
+            { hanzi: "谢谢", pinyin: "xiè xie" },
+            { hanzi: "再见", pinyin: "zài jiàn" },
+            { hanzi: "老师", pinyin: "lǎo shī" },
+            { hanzi: "学生", pinyin: "xué shēng" },
+            { hanzi: "我爱你", pinyin: "wǒ ài nǐ" }
+        ];
 
-        // Hàm phát âm mẫu
+        let currentIndex = 0;
+
+        function updateDisplay() {
+            document.getElementById('hanzi').innerText = vocabulary[currentIndex].hanzi;
+            document.getElementById('pinyin').innerText = vocabulary[currentIndex].pinyin;
+            document.getElementById('result').innerText = "";
+        }
+
+        function nextWord() {
+            currentIndex = (currentIndex + 1) % vocabulary.length;
+            updateDisplay();
+        }
+
         function speakText() {
-            const utterance = new SpeechSynthesisUtterance(targetText);
+            const text = vocabulary[currentIndex].hanzi;
+            const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'zh-CN';
             window.speechSynthesis.speak(utterance);
         }
 
-        // Hàm nhận diện giọng nói
         function startRecognition() {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRecognition) {
-                alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
-                return;
-            }
-
             const recognition = new SpeechRecognition();
             recognition.lang = 'zh-CN';
-            resultDiv.innerText = "Đang lắng nghe...";
+            document.getElementById('result').innerText = "Đang lắng nghe...";
 
             recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
-                // Kiểm tra xem người dùng đọc đúng không
-                if (transcript.includes(targetText)) {
-                    resultDiv.innerText = "Tuyệt vời! Bạn nói đúng rồi: " + transcript;
-                    resultDiv.style.color = "green";
+                const target = vocabulary[currentIndex].hanzi;
+                
+                if (transcript.includes(target)) {
+                    document.getElementById('result').innerHTML = "<span style='color:green'>✓ Chính xác!</span>";
                 } else {
-                    resultDiv.innerText = "Chưa chính xác, bạn đã nói: " + transcript;
-                    resultDiv.style.color = "red";
+                    document.getElementById('result').innerHTML = "<span style='color:red'>✗ Chưa đúng, máy nghe là: " + transcript + "</span>";
                 }
             };
-
             recognition.start();
         }
     </script>
 </body>
 </html>
+
