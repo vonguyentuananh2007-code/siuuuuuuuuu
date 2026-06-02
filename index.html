@@ -2,31 +2,68 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Luyện Phát Âm Tiếng Trung</title>
+    <title>Luyện Phát Âm & Luyện Nói</title>
     <style>
         body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; }
         .card { border: 1px solid #ccc; padding: 20px; border-radius: 10px; width: 300px; text-align: center; }
         .hanzi { font-size: 3em; margin: 10px 0; color: #d32f2f; }
         .pinyin { font-size: 1.5em; color: #555; margin-bottom: 20px; }
-        button { padding: 10px 20px; cursor: pointer; background: #4caf50; color: white; border: none; border-radius: 5px; }
+        .controls { display: flex; gap: 10px; justify-content: center; }
+        button { padding: 10px 15px; cursor: pointer; border: none; border-radius: 5px; }
+        .speak-btn { background: #4caf50; color: white; }
+        .record-btn { background: #2196f3; color: white; }
+        #result { margin-top: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <h2>Luyện phát âm</h2>
+    <h2>Luyện tập tiếng Trung</h2>
     <div class="card">
         <div class="hanzi" id="hanzi">你好</div>
         <div class="pinyin" id="pinyin">nǐ hǎo</div>
-        <button onclick="speak()">Nghe phát âm</button>
+        <div class="controls">
+            <button class="speak-btn" onclick="speakText()">Nghe</button>
+            <button class="record-btn" onclick="startRecognition()">Luyện nói</button>
+        </div>
+        <div id="result"></div>
     </div>
 
     <script>
-        function speak() {
-            const text = document.getElementById('hanzi').innerText;
-            const utterance = new SpeechSynthesisUtterance(text);
-            // Thiết lập ngôn ngữ là Tiếng Trung (Phổ thông)
-            utterance.lang = 'zh-CN'; 
+        const targetText = "你好"; // Từ mục tiêu
+        const resultDiv = document.getElementById('result');
+
+        // Hàm phát âm mẫu
+        function speakText() {
+            const utterance = new SpeechSynthesisUtterance(targetText);
+            utterance.lang = 'zh-CN';
             window.speechSynthesis.speak(utterance);
+        }
+
+        // Hàm nhận diện giọng nói
+        function startRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                alert("Trình duyệt của bạn không hỗ trợ nhận diện giọng nói.");
+                return;
+            }
+
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'zh-CN';
+            resultDiv.innerText = "Đang lắng nghe...";
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                // Kiểm tra xem người dùng đọc đúng không
+                if (transcript.includes(targetText)) {
+                    resultDiv.innerText = "Tuyệt vời! Bạn nói đúng rồi: " + transcript;
+                    resultDiv.style.color = "green";
+                } else {
+                    resultDiv.innerText = "Chưa chính xác, bạn đã nói: " + transcript;
+                    resultDiv.style.color = "red";
+                }
+            };
+
+            recognition.start();
         }
     </script>
 </body>
